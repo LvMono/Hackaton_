@@ -8,4 +8,4 @@ El archivo principal `CiberAventuras_011.html` contiene una historia interactiva
 ## 🚀 Cómo visualizarlo
 1. Descarga o clona este repositorio:
    ```bash
-   git clone https://github.com/LvMono/Hackaton-_Proyect.git
+   git clone https://github.com/LvMono/Hackaton_.git
