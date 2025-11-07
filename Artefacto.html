@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CiberAventura:¡Detén el Ciberacoso!</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --violet-1:#6c5ce7;
+    --violet-2:#5d3fd3;
+    --blue-1:#00b8f2;
+    --green-1:#00cec9;
+    --bg-alpha: rgba(255,255,255,0.65);
+    --accent:#00cec9;
+    --dark:#2d3436;
+  }
+
+  /* ===== Body & animated gradient background ===== */
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:'Quicksand',sans-serif;
+    background: linear-gradient(120deg,#b3e5fc,#d7f0ff,#d7f9f3);
+    background-size: 400% 400%;
+    animation: bgMove 14s ease infinite;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--dark);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    /* Reducido para móvil */
+    padding:12px;
+  }
+  @keyframes bgMove{
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+  }
+
+  /* ===== App frame ===== */
+  .app {
+    width:100%;
+    max-width:820px;
+    border-radius:18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.72));
+    box-shadow: 0 20px 50px rgba(27,38,59,0.12);
+    padding:22px;
+    overflow:hidden;
+    position:relative;
+  }
+
+  /* [NUEVO] Ocultar SideArea (Menú/Intro) cuando el juego está activo */
+  .app.gameActive .sideArea {
+      display: none;
+  }
+  /* [NUEVO] Asegurar que el caballero quede centrado cuando no haya sideArea */
+  .app.gameActive .centerArea {
+      justify-content: center;
+  }
+  .app.gameActive .knightWrap {
+      width: 100%; /* Permite centrar el contenido interno */
+      align-items: center;
+      /* Asegura que el caballero no tenga overflow horizontal */
+      max-width: 220px;
+  }
+
+  /* ===== Layout: top (question), center (knight), bottom (options/menu) ===== */
+  .topArea{padding:8px 18px 6px; text-align:center;}
+  .title{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    margin-bottom:6px;
+  }
+  .title h1{margin:0;font-size:20px;color:var(--violet-2);}
+  .subtitle{margin:0;font-size:13px;color: #374151;}
+
+  /* Question box (above knight) */
+  .questionBox{
+    min-height:62px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:12px 18px;
+    border-radius:12px;
+    background: linear-gradient(180deg, rgba(108,92,231,0.06), rgba(0,200,170,0.04));
+    border:1px solid rgba(92,72,200,0.06);
+    margin:12px auto;
+    max-width:760px;
+    font-weight:600;
+    color:var(--dark);
+    transition:transform .35s ease,opacity .35s ease;
+  }
+
+  /* ===== Center area (knight + decorative) ===== */
+  .centerArea{
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    /* Reducimos el espacio entre elementos */
+    gap:20px;
+    padding:10px 10px 6px;
+    flex-wrap:wrap;
+  }
+
+  /* Knight wrapper so it can appear in intro and game */
+  .knightWrap{
+    width:180px;
+    min-height:220px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+
+  /* ===== Knight (CSS caricature) ===== */
+  .knight{
+    position:relative;
+    width:140px;
+    height:220px;
+    transform-origin:center bottom;
+    animation: float 3.2s ease-in-out infinite;
+  }
+  @keyframes float{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-8px)}
+  }
+
+  /* Helmet */
+  .helmet{
+    position:absolute;
+    top:6px;
+    left:20px;
+    width:100px;height:70px;
+    background: linear-gradient(135deg,var(--violet-2),var(--violet-1));
+    border-radius:46px 46px 18px 18px;
+    border:3px solid rgba(59,47,140,0.9);
+    box-shadow: 0 8px 18px rgba(60,42,130,0.12) inset;
+  }
+  .visor{
+    position:absolute;
+    top:28px; left:30px;
+    width:60px;height:20px;
+    background:#162024;
+    border-radius:10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25) inset;
+  }
+
+  /* Body / armor */
+  .body{
+    position:absolute;
+    top:72px; left:30px;
+    width:80px; height:92px;
+    background: linear-gradient(180deg,var(--violet-1),var(--green-1));
+    border-radius:14px;
+    border:3px solid rgba(59,47,140,0.9);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.06) inset;
+  }
+
+  /* Shield */
+  .shield{
+    position:absolute;
+    top:90px; right:-38px;
+    width:66px;height:78px;
+    background: linear-gradient(135deg,var(--green-1),#55efc4);
+    border-radius:30px 30px 12px 12px;
+    border:3px solid rgba(0,105,92,0.85);
+    transform:rotate(10deg);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+  .shield .icon{
+    position:absolute;left:50%;top:36%;
+    transform:translate(-50%,-50%);
+    width:28px;height:28px;border-radius:6px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.06));
+    border:1px solid rgba(255,255,255,0.12);
+  }
+
+  /* Sword */
+  .sword{
+    position:absolute;
+    top:42px; left:-36px;
+    width:12px;height:120px;
+    background: linear-gradient(180deg,#bff1f3,#81ecec);
+    border:2px solid rgba(0,206,201,0.9);
+    border-radius:6px;
+    transform-origin:top center;
+    transition: transform .45s cubic-bezier(.2,.9,.2,1);
+  }
+  .sword::before{
+    content:"";
+    position:absolute; top:-16px; left:-10px;
+    width:32px;height:14px;border-radius:6px;
+    background: linear-gradient(180deg,#00cec9,#00b8f2);
+    border:2px solid rgba(0,160,150,0.95);
+  }
+
+  /* Salute animation (raise sword) */
+  .salute .sword{ transform: rotate(-35deg) translateY(-12px) translateX(4px); }
+
+  /* Small glow on armor */
+  .armor-glow{
+    position:absolute;
+    top:48px; left:38px;
+    width:64px;height:30px;
+    border-radius:6px;
+    background:linear-gradient(90deg, rgba(255,255,255,0.22), rgba(255,255,255,0.02));
+    opacity:.7;
+    transform:rotate(-12deg);
+    pointer-events:none;
+  }
+
+  /* ===== Right/left info column during intro (narrative + menu) ===== */
+  .sideArea{
+    flex:1;
+    min-width:220px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    align-items:center;
+    padding:8px 8px;
+  }
+
+  /* Intro card */
+  .introCard{
+    width:100%;
+    background:var(--bg-alpha);
+    padding:14px;
+    border-radius:12px;
+    border:1px solid rgba(74,71,163,0.06);
+    text-align:left;
+    box-shadow:0 8px 20px rgba(64,52,140,0.06);
+    animation: cardIn .6s ease;
+  }
+  @keyframes cardIn{ from{opacity:0; transform:translateY(10px)} to{opacity:1;transform:none} }
+  .introCard h2{margin:0 0 6px 0; color:var(--violet-2); font-size:16px}
+  .introCard p{margin:0; font-size:13px; line-height:1.45; color:#35424a}
+
+  /* Menu */
+  .menu{ display:flex; flex-direction:column; gap:8px; align-items:center; width:100% }
+  .menu button{ width:100%; max-width:260px; padding:10px 12px; border-radius:10px; border:0; background:var(--violet-1); color:white; font-weight:700; cursor:pointer; }
+
+  /* Options area (below knight) */
+  .optionsArea{
+    /* Reducimos el margen superior */
+    margin-top:4px;
+    display:flex;
+    flex-direction:column;
+    /* Reducimos el espacio entre botones */
+    gap:8px;
+    align-items:center;
+    /* Reducimos el padding vertical */
+    padding:8px 12px;
+  }
+  .optionsArea button{
+    min-width:200px;
+    max-width:640px;
+    width: 95%; 
+    padding:12px 14px;
+    border-radius:12px;
+    border:0;
+    background:var(--bg-alpha);
+    box-shadow:0 8px 20px rgba(60,50,140,0.03);
+    font-weight:700;
+    cursor:pointer;
+  }
+  .smallRow{
+    display:flex;gap:8px;align-items:center;justify-content:center;
+    /* Reducimos el margen superior */
+    margin-top:4px;
+  }
+  .ghostBtn{
+    background:transparent;color:var(--dark);border:1px solid rgba(45,52,54,0.08);
+    padding:8px 12px;border-radius:10px;font-weight:600; cursor:pointer;
+  }
+
+  /* Hidden helper */
+  .hidden{display:none !important;opacity:0;transform:translateY(6px);}
+
+  /* Fade transitions for screen swaps */
+  .fadeOut{ animation: fadeOut .4s forwards; }
+  .fadeIn{ animation: fadeIn .45s forwards; }
+  @keyframes fadeOut{ to{opacity:0; transform:translateY(-8px)} }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+
+  /* Responsive */
+  @media (max-width:760px){
+    .centerArea{
+      flex-direction:column; 
+      align-items:center;
+      /* Reducimos el padding en el centro para móvil */
+      padding: 4px 10px 4px;
+    }
+    .sideArea{width:100%;}
+    .knightWrap{order:2}
+    .introCard{order:1}
+    .questionBox{font-size:15px}
+  }
+</style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="CiberAventura Detén el Ciberacoso">
+
+    <div class="topArea">
+      <div class="title">
+        <h1>CiberAventura: ¡Detén el Ciberacoso!</h1>
+      </div>
+      <div id="questionBox" class="questionBox" aria-live="polite">
+        <span id="questionText">Antes de comenzar, lee la historia y continúa 🚀</span>
+      </div>
+    </div>
+
+    <div class="centerArea">
+
+      <div class="knightWrap" aria-hidden="false">
+        <div id="knight" class="knight">
+          <div class="helmet"></div>
+          <div class="visor"></div>
+          <div class="body"></div>
+          <div class="armor-glow"></div>
+          <div class="shield"><div class="icon"></div></div>
+          <div class="sword"></div>
+        </div>
+      </div>
+
+      <div class="sideArea">
+
+        <div id="introCard" class="introCard">
+          <h2>🌐 Conviértete en un Guardián Digital</h2>
+          <p>
+            En Bogotá, muchos niños enfrentan el ciberacoso — cuando alguien usa internet o las redes para decir cosas feas, burlarse o molestar.
+            <br><br>
+            <strong>“CiberAventura: ¡Detén el Ciberacoso!”</strong> es un juego para aprender jugando: reconocer el ciberacoso, proteger tu información y ayudar a los demás.
+            <br><br>
+            Avanza por niveles, gana experiencia y conviértete en un héroe digital que usa la tecnología para hacer el bien. 🌟
+          </p>
+          <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+            <button id="btnContinuar" style="background:var(--accent);color:white;padding:10px 14px;border-radius:10px;font-weight:700;">🚀 Continuar</button>
+          </div>
+        </div>
+
+        <div id="menuCard" class="introCard hidden">
+          <h2>🧭 Menú Principal</h2>
+          <div class="menu" style="margin-top:8px">
+            <button id="btnJugar" aria-controls="gameArea">🎮 Jugar</button>
+            <button id="btnInstrucciones">📘 Instrucciones</button>
+            <button id="btnCreditos">⭐ Créditos</button>
+            <button id="btnLanguage">🌎 English</button>
+          </div>
+        </div>
+
+        <div id="instrCard" class="introCard hidden">
+          <h2>📘 Instrucciones</h2>
+          <p>
+            Responde las preguntas que aparecen arriba. Las preguntas están diseñadas para que aprendas a identificar el ciberacoso,
+            proteger tus datos y actuar con respeto. Si no sabes una respuesta, pide ayuda a un adulto.
+          </p>
+          <div class="smallRow" style="justify-content:flex-end;">
+            <button id="backFromInstr" class="ghostBtn">⬅️ Volver</button>
+          </div>
+        </div>
+
+        <div id="credCard" class="introCard hidden">
+          <h2>⭐ Créditos</h2>
+          <p>Juego educativo creado para ayudar a niños a prevenir el ciberacoso. Diseño y desarrollo:Los ingenieros y la paz</p>
+          <div class="smallRow" style="justify-content:flex-end;">
+            <button id="backFromCred" class="ghostBtn">⬅️ Volver</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="optionsArea">
+      <div id="options" style="display:flex;flex-direction:column;gap:10px;align-items:center">
+        </div>
+
+      <div class="smallRow" id="controls" style="margin-top:6px;">
+        <button id="nextBtn" class="ghostBtn hidden">Siguiente</button>
+        <button id="menuBtn" class="ghostBtn hidden">🏠 Menú</button>
+        <div id="scoreText" style="min-width:160px;text-align:center;font-weight:700;color:var(--violet-2)"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ========= Data: preguntas (ahora 5 por nivel) ========= */
+const originalQuestions = [
+  // ====== NIVEL FÁCIL ======
+  { level: "Fácil", question: "¿Qué es el ciberacoso?", question_en: "What is cyberbullying?", options: ["Un juego divertido", "Molestar o insultar a alguien por internet", "Hablar con amigos", "Enviar memes"], options_en: ["A fun game", "Bothering or insulting someone online", "Talking with friends", "Sending memes"], answer: 1 },
+  { level: "Fácil", question: "Si alguien te insulta por internet, ¿qué debes hacer?", question_en: "If someone insults you online, what should you do?", options: ["Responder con insultos", "Ignorarlo y contárselo a un adulto", "Eliminar tu cuenta", "Llorar en silencio"], options_en: ["Insult them back", "Ignore it and tell an adult", "Delete your account", "Cry silently"], answer: 1 },
+  { level: "Fácil", question: "¿A quién puedes contarle si te molestan en línea?", question_en: "Who can you tell if someone bothers you online?", options: ["A un adulto de confianza", "A cualquier desconocido", "A la persona que te insultó", "A nadie"], options_en: ["A trusted adult", "Any stranger", "The person who insulted you", "No one"], answer: 0 },
+  { level: "Fácil", question: "¿Qué debes hacer si ves mensajes feos sobre un amigo?", question_en: "What should you do if you see mean messages about a friend?", options: ["Reírte con los demás", "Avisar a tu amigo y a un adulto", "Compartirlos", "Ignorarlos"], options_en: ["Laugh with others", "Tell your friend and an adult", "Share them", "Ignore them"], answer: 1 },
+  { level: "Fácil", question: "¿Qué es ser un buen amigo en internet?", question_en: "What does it mean to be a good friend online?", options: ["Ayudar y respetar a los demás", "Burlarse de los errores", "Criticar publicaciones", "Decir mentiras"], options_en: ["Help and respect others", "Make fun of mistakes", "Criticize posts", "Tell lies"], answer: 0 },
+
+  // ====== NIVEL INTERMEDIO ======
+  { level: "Intermedio", question: "¿Por qué no debes compartir tu contraseña?", question_en: "Why shouldn't you share your password?", options: ["Porque pueden usar tu cuenta para hacer daño", "Porque no quiero", "Porque es aburrido", "Porque no sé"], options_en: ["They could use your account to hurt others", "Because I don’t want to", "Because it’s boring", "I don’t know"], answer: 0 },
+  { level: "Intermedio", question: "¿Qué haces si ves que alguien molesta a otro en línea?", question_en: "What should you do if you see someone being bullied online?", options: ["No participas y avisas a un adulto o profesor", "Te unes a la burla", "Haces memes del tema", "Lo ignoras"], options_en: ["Don’t join and tell an adult or teacher", "Join the bullying", "Make memes about it", "Ignore it"], answer: 0 },
+  { level: "Intermedio", question: "¿Qué es la huella digital?", question_en: "What is a digital footprint?", options: ["Lo que publicas y compartes en internet", "Una aplicación", "Un tipo de virus", "Un juego"], options_en: ["What you post and share online", "An app", "A kind of virus", "A game"], answer: 0 },
+  { level: "Intermedio", question: "¿Por qué es importante pedir permiso antes de publicar fotos de otros?", question_en: "Why is it important to ask for permission before posting others’ photos?", options: ["Por respeto y privacidad", "Porque es divertido", "Porque no importa", "Porque todos lo hacen"], options_en: ["Out of respect and privacy", "Because it’s fun", "Because it doesn’t matter", "Because everyone does it"], answer: 0 },
+  { level: "Intermedio", question: "Si alguien te pide una foto tuya y no lo conoces, ¿qué haces?", question_en: "If someone you don’t know asks for your photo, what do you do?", options: ["No la envías y avisas a un adulto", "La envías", "Pides una suya", "Lo bloqueas pero sin avisar"], options_en: ["Don’t send it and tell an adult", "Send it", "Ask for theirs", "Block them but don’t tell anyone"], answer: 0 },
+
+  // ====== NIVEL DIFÍCIL ======
+  { level: "Difícil", question: "¿Qué tipo de información nunca debes compartir en línea?", question_en: "What kind of information should you never share online?", options: ["Tu dirección o escuela", "Tu color favorito", "Tu serie favorita", "Tu comida preferida"], options_en: ["Your address or school", "Your favorite color", "Your favorite show", "Your favorite food"], answer: 0 },
+  { level: "Difícil", question: "Si un desconocido te habla por redes, ¿qué haces?", question_en: "If a stranger messages you on social media, what should you do?", options: ["No le respondes y avisas a un adulto", "Le das tus datos", "Hablas con él para conocerlo", "Le mandas fotos"], options_en: ["Don’t reply and tell an adult", "Give them your info", "Chat to get to know them", "Send photos"], answer: 0 },
+  { level: "Difícil", question: "¿Qué hacer si alguien comparte una foto tuya sin permiso?", question_en: "What should you do if someone shares your photo without permission?", options: ["Pedir que la borren y avisar a un adulto o profesor", "Ignorarlo", "Compartirla también", "Insultar a la persona"], options_en: ["Ask them to delete it and tell an adult or teacher", "Ignore it", "Share it too", "Insult the person"], answer: 0 },
+  { level: "Difícil", question: "¿Qué señales indican una noticia falsa en internet?", question_en: "What are signs of fake news online?", options: ["Títulos exagerados o sin fuentes confiables", "Muchos colores bonitos", "Fotos graciosas", "Nombres conocidos"], options_en: ["Exaggerated titles or no reliable sources", "Lots of nice colors", "Funny pictures", "Famous names"], answer: 0 },
+  { level: "Difícil", question: "¿Por qué es importante mantener tu privacidad en redes sociales?", question_en: "Why is it important to keep your privacy on social media?", options: ["Para evitar riesgos y proteger tu información", "Porque no quiero amigos", "Porque no me gusta publicar", "Porque es obligatorio"], options_en: ["To avoid risks and protect your info", "Because I don’t want friends", "Because I don’t like posting", "Because it’s mandatory"], answer: 0 }
+];
+
+
+/* We'll keep a mutable questions array used by the running game.
+   At start it will be a shuffled-by-level version of originalQuestions. */
+let questions = [];
+let currentQuestion = 0;
+let score = 0;
+
+/* ====== Element references ====== */
+const app = document.querySelector('.app'); // [NUEVO] Referencia al contenedor principal
+const questionText = document.getElementById('questionText');
+const questionBox = document.getElementById('questionBox');
+const optionsArea = document.getElementById('options');
+const nextBtn = document.getElementById('nextBtn');
+const menuBtn = document.getElementById('menuBtn');
+const scoreText = document.getElementById('scoreText');
+
+const introCard = document.getElementById('introCard');
+const menuCard = document.getElementById('menuCard');
+const instrCard = document.getElementById('instrCard');
+const credCard = document.getElementById('credCard');
+
+const btnContinuar = document.getElementById('btnContinuar');
+const btnJugar = document.getElementById('btnJugar');
+const btnInstrucciones = document.getElementById('btnInstrucciones');
+const btnCreditos = document.getElementById('btnCreditos');
+const backFromInstr = document.getElementById('backFromInstr');
+const backFromCred = document.getElementById('backFromCred');
+const knight = document.getElementById('knight');
+
+/* ===== Helper: random shuffle (Fisher-Yates) ===== */
+function shuffleArray(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ===== Build initial questions array: keep same difficulty-per-position but randomize which question of that difficulty appears in that position.
+   This ensures "manteniendo la dificultad" por posición. ===== */
+function generateShuffledMaintainingDifficulty(sourceQuestions){
+  // group by level
+  const byLevel = {};
+  sourceQuestions.forEach((q)=> {
+    if(!byLevel[q.level]) byLevel[q.level] = [];
+    byLevel[q.level].push(q);
+  });
+  // create pools (shuffled)
+  for(const lvl in byLevel) byLevel[lvl] = shuffleArray(byLevel[lvl]);
+
+  // For each original index, pick a random (not-yet-used) question from the same level as the original at that index.
+  const result = [];
+  const usedCounts = {};
+  for(let i=0;i<sourceQuestions.length;i++){
+    const neededLevel = sourceQuestions[i].level;
+    usedCounts[neededLevel] = usedCounts[neededLevel] || 0;
+    const pool = byLevel[neededLevel] || [];
+    const pickIndex = usedCounts[neededLevel];
+    // If pool runs out (unlikely), just pick from any shuffled pool
+    const q = pool[pickIndex] || shuffleArray(sourceQuestions)[0];
+    result.push(q);
+    usedCounts[neededLevel]++;
+  }
+  return result;
+}
+
+/* ====== Screen flow functions ====== */
+function showIntro(){
+  introCard.classList.remove('hidden'); menuCard.classList.add('hidden');
+  instrCard.classList.add('hidden'); credCard.classList.add('hidden');
+  questionText.textContent = "Lee la historia y pulsa Continuar para empezar tu misión.";
+  optionsArea.innerHTML = ""; nextBtn.classList.add('hidden'); menuBtn.classList.add('hidden'); scoreText.textContent = '';
+  knight.classList.remove('salute');
+  app.classList.remove('gameActive'); // [MODIFICADO] Asegurar que la clase esté quitada
+}
+
+function showMenu(){
+  introCard.classList.add('hidden');
+  menuCard.classList.remove('hidden');
+  instrCard.classList.add('hidden'); credCard.classList.add('hidden');
+  questionText.textContent = "¡Bienvenido, futuro Guardián Digital! Selecciona una opción del menú.";
+  optionsArea.innerHTML = ""; 
+  nextBtn.classList.add('hidden'); 
+  menuBtn.classList.add('hidden'); // Ocultar el botón de Menú
+  scoreText.textContent = '';
+  knight.classList.remove('salute');
+  app.classList.remove('gameActive'); // [MODIFICADO] Quitar clase al ir al menú
+}
+
+function showInstructions(){
+  introCard.classList.add('hidden');
+  menuCard.classList.add('hidden');
+  instrCard.classList.remove('hidden');
+  credCard.classList.add('hidden');
+  questionText.textContent = "Lee las instrucciones y luego vuelve al menú para jugar.";
+  optionsArea.innerHTML = ""; nextBtn.classList.add('hidden'); menuBtn.classList.add('hidden'); scoreText.textContent = '';
+  knight.classList.remove('salute');
+  app.classList.remove('gameActive'); // [MODIFICADO] Asegurar que la clase esté quitada
+}
+
+function showCredits(){
+  introCard.classList.add('hidden');
+  menuCard.classList.add('hidden');
+  instrCard.classList.add('hidden');
+  credCard.classList.remove('hidden');
+  questionText.textContent = "Agradecimientos y créditos del juego.";
+  optionsArea.innerHTML = ""; nextBtn.classList.add('hidden'); menuBtn.classList.add('hidden'); scoreText.textContent = '';
+  knight.classList.remove('salute');
+  app.classList.remove('gameActive'); // [MODIFICADO] Asegurar que la clase esté quitada
+}
+
+/* ====== Gameplay functions ====== */
+function startGame(){
+  app.classList.add('gameActive'); // [MODIFICADO] Agregar clase al empezar el juego (oculta el menú lateral)
+  knight.classList.add('salute');
+  setTimeout(()=> knight.classList.remove('salute'), 900);
+
+  // Prepare question order...
+  questions = generateShuffledMaintainingDifficulty(originalQuestions);
+
+  currentQuestion = 0; score = 0;
+  scoreText.textContent = '';
+  renderQuestion();
+}
+
+function renderQuestion(){
+  // Ocultamos las tarjetas de menú/instrucciones
+  menuCard.classList.add('hidden');
+  instrCard.classList.add('hidden');
+  credCard.classList.add('hidden');
+  
+  const q = questions[currentQuestion];
+  const lang = currentLang === "es" ? "" : "_en";
+  const questionValue = q["question" + lang] || q.question;
+  const optionsValue = q["options" + lang] || q.options;
+
+  // question text up top (show index + level)
+  questionText.textContent =
+    (currentLang === "es"
+      ? `Pregunta ${currentQuestion + 1} / ${questions.length} — Nivel: ${q.level} — `
+      : `Question ${currentQuestion + 1} / ${questions.length} — Level: ${q.level} — `)
+    + questionValue;
+  questionBox.classList.remove('fadeOut'); questionBox.classList.add('fadeIn');
+
+  // build buttons under
+  optionsArea.innerHTML = '';
+  optionsValue.forEach((opt, i)=>{
+    const btn = document.createElement('button');
+    btn.textContent = opt;
+    btn.style.minWidth = '220px';
+    btn.setAttribute('data-index', i);
+    btn.onclick = ()=> selectAnswer(i, q.answer, btn);
+    btn.onkeydown = (ev)=> {
+      if(ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); btn.click(); }
+    };
+    optionsArea.appendChild(btn);
+  });
+  nextBtn.classList.add('hidden');
+  menuBtn.classList.remove('hidden'); // [MODIFICADO] Mostrar el botón de menú durante las preguntas
+  scoreText.textContent = (currentLang === "es" ? "Puntaje: " : "Score: ") + score;
+}
+
+/* selectAnswer: if correct → highlight & auto-continue; if incorrect → restart and reshuffle preserving difficulty */
+function selectAnswer(selected, correct, btn){
+  // deshabilitar todos los botones
+  const buttons = Array.from(optionsArea.querySelectorAll('button'));
+  buttons.forEach(b=>{ b.disabled = true; b.style.opacity = '0.85'; });
+
+  if(selected === correct){
+    // correcta → mostrar verde y avanzar automáticamente
+    btn.style.background = 'linear-gradient(90deg,var(--green-1),#55efc4)';
+    btn.style.color = 'white';
+    score++;
+    scoreText.textContent = (currentLang === "es" ? "Puntaje: " : "Score: ") + score;
+    
+    // animación del caballero
+    knight.classList.add('salute');
+    setTimeout(()=> knight.classList.remove('salute'), 800);
+
+    // avanzar automáticamente después de 1 segundo
+    setTimeout(() => {
+      currentQuestion++;
+      if(currentQuestion < questions.length){
+        renderQuestion();
+      } else {
+        questionText.textContent = currentLang === "es" ? '🎉 ¡Juego terminado!' : '🎉 Game Finished!';
+        optionsArea.innerHTML = '';
+        menuBtn.classList.remove('hidden');
+        scoreText.textContent = 
+          currentLang === "es" 
+            ? `Tu puntaje final es ${score} de ${questions.length} 🎯`
+            : `Your final score is ${score} out of ${questions.length} 🎯`;
+        knight.animate([{transform:'translateY(0)'},{transform:'translateY(-10px)'},{transform:'translateY(0)'}],{duration:700});
+      }
+    }, 1000);
+  } else {
+    // incorrecta → mostrar retroalimentación y reiniciar con mezcla de dificultad conservada
+    btn.style.background = '#d63031';
+    btn.style.color = 'white';
+    // resaltar la correcta
+    const corr = buttons[correct];
+    if(corr) { 
+      corr.style.background = 'linear-gradient(90deg,var(--green-1),#55efc4)'; 
+      corr.style.color = 'white'; 
+    }
+    scoreText.textContent = (currentLang === "es" ? "Puntaje: " : "Score: ") + score;
+
+    // mensaje breve
+    questionText.textContent = currentLang === "es" 
+      ? '❌ Respuesta incorrecta — Reiniciando y mezclando preguntas...' 
+      : '❌ Incorrect Answer — Restarting and shuffling questions...';
+    // animación del caballero “sorpresa”
+    knight.animate([{transform:'translateY(0)'},{transform:'translateY(-8px)'},{transform:'translateY(0)'}],{duration:500});
+
+    // reiniciar el juego después de un pequeño retraso
+    setTimeout(()=>{
+      questions = generateShuffledMaintainingDifficulty(originalQuestions);
+      currentQuestion = 0;
+      score = 0;
+      renderQuestion();
+    }, 1100);
+  }
+}
+
+
+/* next question or finish (unused in current flow, but kept) */
+nextBtn.addEventListener('click', ()=>{
+  currentQuestion++;
+  if(currentQuestion < questions.length){
+    renderQuestion();
+  } else {
+    // finished
+    questionText.textContent = currentLang === "es" ? '🎉 ¡Juego terminado!' : '🎉 Game Finished!';
+    optionsArea.innerHTML = '';
+    nextBtn.classList.add('hidden');
+    menuBtn.classList.remove('hidden');
+    scoreText.textContent = currentLang === "es" 
+      ? `Tu puntaje final es ${score} de ${questions.length} 🎯`
+      : `Your final score is ${score} out of ${questions.length} 🎯`;
+    // small celebration: knight does quick float
+    knight.animate([{transform:'translateY(0)'},{transform:'translateY(-10px)'},{transform:'translateY(0)'}],{duration:700});
+  }
+});
+
+/* menu button: go back to menu (keeps intro shown on reload) */
+menuBtn.addEventListener('click', ()=>{
+  showMenu();
+});
+
+/* Intro/menu button handlers */
+btnContinuar.addEventListener('click', ()=>{
+  introCard.classList.add('fadeOut');
+  setTimeout(()=> {
+    introCard.classList.add('hidden');
+    introCard.classList.remove('fadeOut');
+    showMenu();
+  }, 260);
+});
+
+btnJugar.addEventListener('click', ()=> {
+  startGame();
+});
+btnInstrucciones.addEventListener('click', ()=> showInstructions());
+btnCreditos.addEventListener('click', ()=> showCredits());
+backFromInstr.addEventListener('click', ()=> showMenu());
+backFromCred.addEventListener('click', ()=> showMenu());
+
+
+/* ====== Selector de idioma (Español / English) ====== */
+let currentLang = "es";
+const btnLanguage = document.getElementById('btnLanguage');
+
+/* Alternar idioma */
+btnLanguage.addEventListener('click', () => {
+  currentLang = currentLang === "es" ? "en" : "es";
+  updateLanguageTexts();
+});
+
+/* Actualiza textos del menú y preguntas */
+function updateLanguageTexts() {
+  // ===== Título general =====
+  document.querySelector('h1').textContent =
+    currentLang === "es" ? "CiberAventura: ¡Detén el Ciberacoso!" : "CyberAdventure: Stop Cyberbullying!";
+  document.title =
+    currentLang === "es" ? "CiberAventura: ¡Detén el Ciberacoso!" : "CyberAdventure: Stop Cyberbullying!";
+
+  // ===== Botones del menú =====
+  document.getElementById('btnJugar').textContent =
+    currentLang === "es" ? "🎮 Jugar" : "🎮 Play";
+  document.getElementById('btnInstrucciones').textContent =
+    currentLang === "es" ? "📘 Instrucciones" : "📘 Instructions";
+  document.getElementById('btnCreditos').textContent =
+    currentLang === "es" ? "⭐ Créditos" : "⭐ Credits";
+  document.getElementById('btnLanguage').textContent =
+    currentLang === "es" ? "🌎 English" : "🌎 Español";
+
+  // ===== Texto del menú principal/inicio =====
+  if (document.getElementById('menuCard').classList.contains('hidden')) {
+    // Si está en Intro
+    questionText.textContent =
+      currentLang === "es" ? "Antes de comenzar, lee la historia y continúa 🚀" : "Before you start, read the story and continue 🚀";
+  } else {
+    // Si está en Menú
+    questionText.textContent =
+      currentLang === "es"
+        ? "¡Bienvenido, futuro Guardián Digital! Selecciona una opción del menú."
+        : "Welcome, future Digital Guardian! Choose an option from the menu.";
+  }
+  
+  // ===== Intro =====
+  document.querySelector("#introCard h2").textContent =
+    currentLang === "es"
+      ? "🌐 Conviértete en un Guardián Digital"
+      : "🌐 Become a Digital Guardian";
+  document.querySelector("#introCard p").innerHTML =
+    currentLang === "es"
+      ? `En Bogotá, muchos niños enfrentan el ciberacoso — cuando alguien usa internet o las redes para decir cosas feas, burlarse o molestar.
+      <br><br>
+      <strong>“CiberAventura: ¡Detén el Ciberacoso!”</strong> es un juego para aprender jugando: reconocer el ciberacoso, proteger tu información y ayudar a los demás.
+      <br><br>
+      Avanza por niveles, gana experiencia y conviértete en un héroe digital que usa la tecnología para hacer el bien. 🌟`
+      : `In Bogotá, many children face cyberbullying — when someone uses the internet or social networks to say mean things, mock, or bother others.
+      <br><br>
+      <strong>“CyberAdventure: Stop Cyberbullying!”</strong> is a game to learn by playing: recognize cyberbullying, protect your information, and help others.
+      <br><br>
+      Progress through levels, gain experience, and become a digital hero who uses technology for good. 🌟`;
+  document.getElementById('btnContinuar').textContent = currentLang === "es" ? "🚀 Continuar" : "🚀 Continue";
+
+  // ===== Instrucciones =====
+  document.querySelector("#instrCard h2").textContent =
+    currentLang === "es" ? "📘 Instrucciones" : "📘 Instructions";
+  document.querySelector("#instrCard p").textContent =
+    currentLang === "es"
+      ? "Responde las preguntas que aparecen arriba. Las preguntas están diseñadas para que aprendas a identificar el ciberacoso, proteger tus datos y actuar con respeto. Si no sabes una respuesta, pide ayuda a un adulto."
+      : "Answer the questions shown above. The questions are designed to help you learn to identify cyberbullying, protect your data, and act respectfully. If you don’t know an answer, ask an adult for help.";
+
+  document.querySelector("#backFromInstr").textContent =
+    currentLang === "es" ? "⬅️ Volver" : "⬅️ Back";
+
+  // ===== Créditos =====
+  document.querySelector("#credCard h2").textContent =
+    currentLang === "es" ? "⭐ Créditos" : "⭐ Credits";
+  document.querySelector("#credCard p").textContent =
+    currentLang === "es"
+      ? "Juego educativo creado para ayudar a niños a prevenir el ciberacoso. Diseño y desarrollo: Los ingenieros y la paz."
+      : "Educational game created to help children prevent cyberbullying. Design and development: The Engineers and Peace.";
+
+  document.querySelector("#backFromCred").textContent =
+    currentLang === "es" ? "⬅️ Volver" : "⬅️ Back";
+    
+  document.getElementById('menuBtn').textContent = currentLang === "es" ? "🏠 Menú" : "🏠 Menu";
+
+  // Si estamos en el juego, re-renderizar la pregunta para actualizar el idioma de las opciones
+  if (currentQuestion < questions.length && document.getElementById('options').innerHTML !== '') {
+    // Si ya cargó la pregunta
+    renderQuestion();
+  } else if (currentQuestion === questions.length) {
+    // Si terminó el juego, actualizar el mensaje final
+    scoreText.textContent = 
+      currentLang === "es" 
+        ? `Tu puntaje final es ${score} de ${questions.length} 🎯`
+        : `Your final score is ${score} out of ${questions.length} 🎯`;
+    questionText.textContent = currentLang === "es" ? '🎉 ¡Juego terminado!' : '🎉 Game Finished!';
+  } else {
+    // Sino, actualizar solo el texto de la caja superior
+    if (menuCard.classList.contains('hidden') && !introCard.classList.contains('hidden')) {
+        questionText.textContent = currentLang === "es" ? "Antes de comenzar, lee la historia y continúa 🚀" : "Before you start, read the story and continue 🚀";
+    } else if (!menuCard.classList.contains('hidden')) {
+        questionText.textContent = currentLang === "es" ? "¡Bienvenido, futuro Guardián Digital! Selecciona una opción del menú." : "Welcome, future Digital Guardian! Choose an option from the menu.";
+    }
+  }
+}
+
+// Mostrar la intro al cargar
+document.addEventListener('DOMContentLoaded', showIntro);
+</script>
+</body>
+</html>
